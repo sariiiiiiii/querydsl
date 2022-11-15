@@ -11,7 +11,7 @@ import static lombok.AccessLevel.*;
 @Getter @Setter
 @NoArgsConstructor(access = PROTECTED)
 @ToString(of = {"id", "username", "age"})
-public class Member {
+public class Member extends BaseEntity {
 
     @Id @GeneratedValue
     @Column(name = "member_id")
@@ -24,6 +24,12 @@ public class Member {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    public Member(Long id, String username, int age) {
+        this.id = id;
+        this.username = username;
+        this.age = age;
+    }
 
     public Member(String username) {
         this(username, 0);
