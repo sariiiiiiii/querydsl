@@ -18,7 +18,8 @@ spring:
 # local 설정
   config:
     activate:
-      on-profile: local
+      on-profile: test
+
 
 logging:
   level:

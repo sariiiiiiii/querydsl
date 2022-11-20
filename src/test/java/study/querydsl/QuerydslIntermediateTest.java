@@ -4,16 +4,13 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.*;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -930,6 +927,10 @@ public class QuerydslIntermediateTest {
                 .set(member.age, member.age.add(1))
                 .execute();
 
+        // 영속성 컨텍스트 초기화 (벌크연산 단점 보완)
+        em.flush();
+        em.clear();
+
         assertThat(result).isEqualTo(4);
     }
 
@@ -947,7 +948,58 @@ public class QuerydslIntermediateTest {
 
     /**
      * SQL Function 호출
+     * 조회를 할건데 member.username에서 member라는 단어를 M이라는 단어로 replace
+     * String이면 StringTemplate
+     * 참고로 function은 DBDilect에 등록이 되어 있어야 한다
+     * 만약 나만의 function을 만들고 싶으면 H2Direct를 상속을 받아서 설정파일로 수정해줘야됨 (JPA 기본편 참고)
      */
+    @Test
+    public void sqlFunction() {
+
+        List<String> result = queryFactory
+                .select(
+                        Expressions.stringTemplate("function('replace', {0}, {1}, {2})", member.username, "member", "M")
+                )
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    /**
+     * 이런 간단한 함수들은 (안시표준) querydsl이 어느정도 내장을 하고 있다
+     * sqlFunction3 테스트 케이스를 참고
+     */
+    @Test
+    public void sqlFuction2() {
+
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(
+                        Expressions.stringTemplate("function('lower', {0})", member.username)))
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    public void sqlFunction3() {
+
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(member.username.lower()))
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 
 
 }
