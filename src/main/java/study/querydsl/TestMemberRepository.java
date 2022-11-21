@@ -34,9 +34,9 @@ public interface TestMemberRepository extends JpaRepository<Member, Long>, Membe
     @Query("update Member m set m.age = m.age + 1 where m.age > :age")
     int bulkAgePlus(@Param("age") int age);
 
-//    @Override
-//    @EntityGraph(attributePaths = { "team" })
-//    List<Member> findAll();
+    @Override
+    @EntityGraph(attributePaths = { "team" })
+    List<Member> findAll();
 
     @Query("select m from Member m join fetch m.team t")
     List<Member> findMemberFetchJoin();
